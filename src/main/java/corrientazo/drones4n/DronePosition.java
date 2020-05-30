@@ -1,5 +1,7 @@
 package corrientazo.drones4n;
 
+import java.util.Objects;
+
 /**
  * Representation of position of a drone. Think of a cartesian plane where x and y represent the position, and
  * direction represents the direction where the drone is looking at. <code>direction</code> can be 0, 1, 2, 3;
@@ -50,6 +52,21 @@ public class DronePosition {
         return str;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof DronePosition)) return false;
+        DronePosition that = (DronePosition) o;
+        return x == that.x &&
+                y == that.y &&
+                direction == that.direction;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(x, y, direction);
+    }
+
     /**
      *
      * @return String representation of this file in format (-2, 4) dirección Norte
@@ -58,6 +75,6 @@ public class DronePosition {
     public String toString() {
         return "(" + x +
                 ", " + y +
-                "), dirección " + getDirectionAsString();
+                ") dirección " + getDirectionAsString();
     }
 }

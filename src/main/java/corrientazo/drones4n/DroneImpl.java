@@ -38,9 +38,52 @@ public class DroneImpl implements Drone {
     }
 
     @Override
-    public boolean move(String instruction) {
+    public synchronized boolean  move(String instruction) {
         this.status = DroneStatus.MOVING;
         logger.info("DroneId {} moving to {}", this.id, instruction);
+        char[] moves = instruction.toCharArray();
+        for (int i = 0; i < moves.length; i++) {
+            int addX = 0;
+            int addY = 0;
+            int currDirection = position.getDirection();
+            switch (moves[i]) {
+                case 'A':
+                    switch (position.getDirection()) {
+                        case 0:
+                            addX++;
+                            break;
+                        case 1:
+                            addY++;
+                            break;
+                        case 2:
+                            addX--;
+                            break;
+                        case 3:
+                            addY--;
+                            break;
+                        default:
+                    }
+                    break;
+                case 'I':
+                    if(currDirection == 0) {
+                        currDirection = 3;
+                    } else {
+                        currDirection--;
+                    }
+                    break;
+                case 'D':
+                    if(currDirection == 3) {
+                        currDirection = 0;
+                    } else {
+                        currDirection++;
+                    }
+                    break;
+                default:
+
+            }
+            position = new DronePosition(position.getX() + addX, position.getY() + addY, currDirection);
+        }
+        positions.add(position);
         this.status = DroneStatus.REACH_DESTINATION;
         return true;
     }
