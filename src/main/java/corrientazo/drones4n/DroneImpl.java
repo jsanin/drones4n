@@ -14,17 +14,21 @@ public class DroneImpl implements Drone {
     private static final Logger logger = LoggerFactory.getLogger(DroneImpl.class);
 
     private String id;
+    private DronePosition initialPosition;
     private DronePosition position;
     private DroneStatus status;
     private int capacity;
     private List<DronePosition> positions;
+    private int maxBlocksAround;
 
-    public DroneImpl(String id, int capacity, DronePosition initialPosition) {
+    public DroneImpl(String id, int capacity, DronePosition initialPosition, int maxBlocksAround) {
         this.id = id;
         this.capacity = capacity;
         this.position = initialPosition;
+        this.initialPosition = initialPosition;
         this.status = DroneStatus.STARTED;
         positions = new ArrayList<>();
+        this.maxBlocksAround = maxBlocksAround;
     }
 
     @Override
@@ -40,6 +44,7 @@ public class DroneImpl implements Drone {
     @Override
     public synchronized boolean  move(String instruction) {
         this.status = DroneStatus.MOVING;
+        boolean errorRange = false;
         logger.info("DroneId {} moving to {}", this.id, instruction);
         char[] moves = instruction.toCharArray();
         for (int i = 0; i < moves.length; i++) {
@@ -81,11 +86,26 @@ public class DroneImpl implements Drone {
                 default:
 
             }
+            if(maxBlocksAround > 0 &&
+                    (Math.abs(position.getX() + addX) > maxBlocksAround ||
+                     Math.abs(position.getY() + addY) > maxBlocksAround)) {
+                // if make this move it would be out of range
+                // do not go there and stop the rest of the moves
+                logger.error("DroneId {} out of range in executing {} at index {}", this.getId(), instruction, (i + 1));
+                this.status = DroneStatus.ERROR_OUT_OF_RANGE;
+                errorRange = true;
+                break;
+            }
+
             position = new DronePosition(position.getX() + addX, position.getY() + addY, currDirection);
         }
-        positions.add(position);
-        this.status = DroneStatus.REACH_DESTINATION;
-        return true;
+        if(!errorRange) {
+            positions.add(position);
+            this.status = DroneStatus.REACH_DESTINATION;
+            return true;
+        } else {
+            return false;
+        }
     }
 
     @Override

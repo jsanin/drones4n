@@ -35,7 +35,7 @@ public class DroneS4n {
 
 
 
-    public void start(String workDir, int countDrones, int droneCapacity) throws IOException {
+    public void start(String workDir, int countDrones, int droneCapacity, int maxBlocksAround) throws IOException {
         logger.info("Just started!");
         final int numberDigits = getNumberDigits(countDrones);
         final String outFileFormat = buildOutFileFormat(numberDigits);
@@ -54,7 +54,7 @@ public class DroneS4n {
         }
 
         for (int i = 1; i <= countDrones; i++) {
-            drones.put(i, new DroneImpl(String.valueOf(i), droneCapacity, new DronePosition(0, 0, 0)));
+            drones.put(i, new DroneImpl(String.valueOf(i), droneCapacity, new DronePosition(0, 0, 0), maxBlocksAround));
         }
 
         while(true) {

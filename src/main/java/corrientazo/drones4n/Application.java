@@ -25,7 +25,9 @@ public class Application {
         });
 
         try {
-            droneS4n.start("/Users/jsanin/dev/workspace_personal/drones4n/workDir", 3, 2);
+            droneS4n.start(
+                    "/Users/jsanin/dev/workspace_personal/drones4n/workDir",
+                    3, 2, 10);
 
         } catch (IOException e) {
             logger.error("Error", e);

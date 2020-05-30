@@ -20,7 +20,7 @@ public class DroneImplTest {
         final String id = "1";
         final int capacity = 3;
         DronePosition initialPosition = new DronePosition(0, 0, 0);
-        DroneImpl drone = new DroneImpl(id, capacity, initialPosition);
+        DroneImpl drone = new DroneImpl(id, capacity, initialPosition, -1);
 
 
         //when
@@ -40,7 +40,7 @@ public class DroneImplTest {
         final String id = "1";
         final int capacity = 3;
         DronePosition initialPosition = new DronePosition(0, 0, 0);
-        DroneImpl drone = new DroneImpl(id, capacity, initialPosition);
+        DroneImpl drone = new DroneImpl(id, capacity, initialPosition, -1);
 
 
         //when
@@ -60,7 +60,7 @@ public class DroneImplTest {
         final String id = "1";
         final int capacity = 3;
         DronePosition initialPosition = new DronePosition(0, 0, 0);
-        DroneImpl drone = new DroneImpl(id, capacity, initialPosition);
+        DroneImpl drone = new DroneImpl(id, capacity, initialPosition, -1);
 
 
         //when
@@ -80,7 +80,7 @@ public class DroneImplTest {
         final String id = "1";
         final int capacity = 3;
         DronePosition initialPosition = new DronePosition(0, 0, 0);
-        DroneImpl drone = new DroneImpl(id, capacity, initialPosition);
+        DroneImpl drone = new DroneImpl(id, capacity, initialPosition, -1);
 
 
         //when
@@ -100,7 +100,7 @@ public class DroneImplTest {
         final String id = "1";
         final int capacity = 3;
         DronePosition initialPosition = new DronePosition(0, 0, 0);
-        DroneImpl drone = new DroneImpl(id, capacity, initialPosition);
+        DroneImpl drone = new DroneImpl(id, capacity, initialPosition, -1);
 
 
         //when
@@ -120,7 +120,7 @@ public class DroneImplTest {
         final String id = "1";
         final int capacity = 3;
         DronePosition initialPosition = new DronePosition(0, 0, 0);
-        DroneImpl drone = new DroneImpl(id, capacity, initialPosition);
+        DroneImpl drone = new DroneImpl(id, capacity, initialPosition, -1);
 
 
         //when
@@ -140,7 +140,7 @@ public class DroneImplTest {
         final String id = "1";
         final int capacity = 3;
         DronePosition initialPosition = new DronePosition(0, 0, 0);
-        DroneImpl drone = new DroneImpl(id, capacity, initialPosition);
+        DroneImpl drone = new DroneImpl(id, capacity, initialPosition, -1);
 
 
         //when
@@ -160,7 +160,7 @@ public class DroneImplTest {
         final String id = "1";
         final int capacity = 3;
         DronePosition initialPosition = new DronePosition(0, 0, 0);
-        DroneImpl drone = new DroneImpl(id, capacity, initialPosition);
+        DroneImpl drone = new DroneImpl(id, capacity, initialPosition, -1);
 
 
         //when
@@ -179,7 +179,7 @@ public class DroneImplTest {
         final String id = "1";
         final int capacity = 3;
         DronePosition initialPosition = new DronePosition(0, 0, 0);
-        DroneImpl drone = new DroneImpl(id, capacity, initialPosition);
+        DroneImpl drone = new DroneImpl(id, capacity, initialPosition, -1);
 
 
         //when
@@ -198,7 +198,7 @@ public class DroneImplTest {
         final String id = "1";
         final int capacity = 3;
         DronePosition initialPosition = new DronePosition(0, 0, 0);
-        DroneImpl drone = new DroneImpl(id, capacity, initialPosition);
+        DroneImpl drone = new DroneImpl(id, capacity, initialPosition, -1);
 
 
         //when
@@ -217,7 +217,7 @@ public class DroneImplTest {
         final String id = "1";
         final int capacity = 3;
         DronePosition initialPosition = new DronePosition(0, 0, 0);
-        DroneImpl drone = new DroneImpl(id, capacity, initialPosition);
+        DroneImpl drone = new DroneImpl(id, capacity, initialPosition, -1);
 
 
         //when
@@ -236,7 +236,7 @@ public class DroneImplTest {
         final String id = "1";
         final int capacity = 3;
         DronePosition initialPosition = new DronePosition(0, 0, 0);
-        DroneImpl drone = new DroneImpl(id, capacity, initialPosition);
+        DroneImpl drone = new DroneImpl(id, capacity, initialPosition, -1);
 
 
         //when
@@ -255,7 +255,7 @@ public class DroneImplTest {
         final String id = "1";
         final int capacity = 3;
         DronePosition initialPosition = new DronePosition(0, 0, 0);
-        DroneImpl drone = new DroneImpl(id, capacity, initialPosition);
+        DroneImpl drone = new DroneImpl(id, capacity, initialPosition, -1);
 
 
         //when
@@ -274,7 +274,7 @@ public class DroneImplTest {
         final String id = "1";
         final int capacity = 3;
         DronePosition initialPosition = new DronePosition(0, 0, 0);
-        DroneImpl drone = new DroneImpl(id, capacity, initialPosition);
+        DroneImpl drone = new DroneImpl(id, capacity, initialPosition, -1);
 
 
         //when
@@ -297,5 +297,123 @@ public class DroneImplTest {
 
 
     }
+
+    @Test
+    public void move_move1OutOfRangeNorth() {
+        //given
+        final String id = "1";
+        final int capacity = 3;
+        DronePosition initialPosition = new DronePosition(0, 0, 0);
+        DroneImpl drone = new DroneImpl(id, capacity, initialPosition, 5);
+
+        //when
+        boolean moveRet = drone.move("AAAAAA");
+
+        //then
+        assertFalse(moveRet);
+        DronePosition pos = drone.getCurrentPosition();
+        DronePosition expected = new DronePosition(5, 0, 0);
+        assertEquals(expected, pos);
+
+        List<DronePosition> positions = drone.getAllPositions();
+        assertEquals(0, positions.size());
+
+    }
+
+    @Test
+    public void move_move1OutOfRangeEast() {
+        //given
+        final String id = "1";
+        final int capacity = 3;
+        DronePosition initialPosition = new DronePosition(0, 0, 0);
+        DroneImpl drone = new DroneImpl(id, capacity, initialPosition, 5);
+
+        //when
+        boolean moveRet = drone.move("DAAAAAA");
+
+        //then
+        assertFalse(moveRet);
+        DronePosition pos = drone.getCurrentPosition();
+        DronePosition expected = new DronePosition(0, 5, 1);
+        assertEquals(expected, pos);
+
+        List<DronePosition> positions = drone.getAllPositions();
+        assertEquals(0, positions.size());
+
+    }
+
+    @Test
+    public void move_move1OutOfRangeSouth() {
+        //given
+        final String id = "1";
+        final int capacity = 3;
+        DronePosition initialPosition = new DronePosition(0, 0, 0);
+        DroneImpl drone = new DroneImpl(id, capacity, initialPosition, 5);
+
+        //when
+        boolean moveRet = drone.move("DDAAAAAA");
+
+        //then
+        assertFalse(moveRet);
+        DronePosition pos = drone.getCurrentPosition();
+        DronePosition expected = new DronePosition(-5, 0, 2);
+        assertEquals(expected, pos);
+
+        List<DronePosition> positions = drone.getAllPositions();
+        assertEquals(0, positions.size());
+
+    }
+
+    @Test
+    public void move_move1OutOfRangeWest() {
+        //given
+        final String id = "1";
+        final int capacity = 3;
+        DronePosition initialPosition = new DronePosition(0, 0, 0);
+        DroneImpl drone = new DroneImpl(id, capacity, initialPosition, 5);
+
+        //when
+        boolean moveRet = drone.move("IAAAAAA");
+
+        //then
+        assertFalse(moveRet);
+        assertEquals(DroneStatus.ERROR_OUT_OF_RANGE, drone.status());
+        DronePosition pos = drone.getCurrentPosition();
+        DronePosition expected = new DronePosition(0, -5, 3);
+        assertEquals(expected, pos);
+
+        List<DronePosition> positions = drone.getAllPositions();
+        assertEquals(0, positions.size());
+
+    }
+
+    @Test
+    public void move_move2OutOfRangeNorth() {
+        //given
+        final String id = "1";
+        final int capacity = 3;
+        DronePosition initialPosition = new DronePosition(0, 0, 0);
+        DroneImpl drone = new DroneImpl(id, capacity, initialPosition, 5);
+
+        //when
+        boolean moveRet = drone.move("AA");
+        assertTrue(moveRet);
+        assertEquals(DroneStatus.REACH_DESTINATION, drone.status());
+        moveRet = drone.move("DAIAAAA");
+
+        //then
+        assertFalse(moveRet);
+        assertEquals(DroneStatus.ERROR_OUT_OF_RANGE, drone.status());
+        DronePosition pos = drone.getCurrentPosition();
+        DronePosition expected = new DronePosition(5, 1, 0);
+        assertEquals(expected, pos);
+
+        List<DronePosition> positions = drone.getAllPositions();
+        assertEquals(1, positions.size());
+        assertEquals(new DronePosition(2, 0, 0), positions.get(0));
+
+    }
+
+
 
 }
