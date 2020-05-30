@@ -28,4 +28,36 @@ public class DronePosition {
     public int getDirection() {
         return direction;
     }
+
+    public String getDirectionAsString() {
+        String str;
+        switch (this.direction) {
+            case 0:
+                str = "Norte";
+                break;
+            case 1:
+                str = "Oriente";
+                break;
+            case 2:
+                str = "Sur";
+                break;
+            case 3:
+                str = "Occidente";
+                break;
+            default:
+                str = "UNDEF";
+        }
+        return str;
+    }
+
+    /**
+     *
+     * @return String representation of this file in format (-2, 4) dirección Norte
+     */
+    @Override
+    public String toString() {
+        return "(" + x +
+                ", " + y +
+                "), dirección " + getDirectionAsString();
+    }
 }

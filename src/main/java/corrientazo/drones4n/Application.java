@@ -15,8 +15,18 @@ public class Application {
 
     public static void main(String[] args) {
         logger.info("Starting ...");
+        final DroneS4n droneS4n = new DroneS4n();
+
+        Runtime.getRuntime().addShutdownHook(new Thread() {
+            public void run() {
+                logger.info("Shutting down ...");
+                droneS4n.shutdown();
+            }
+        });
+
         try {
-            new DroneS4n().start("/Users/jsanin/dev/workspace_personal/drones4n/workDir", 1, 2);
+            droneS4n.start("/Users/jsanin/dev/workspace_personal/drones4n/workDir", 3, 2);
+
         } catch (IOException e) {
             logger.error("Error", e);
         }

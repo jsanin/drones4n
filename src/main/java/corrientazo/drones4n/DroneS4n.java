@@ -24,6 +24,10 @@ public class DroneS4n {
 
     protected final static String IN_DIR_NAME = "in";
     protected final static String PROCESSED_DIR_NAME = "processed";
+    protected final static String OUT_DIR_NAME = "out";
+    protected final static String PREFIX_OUT_NAME = "out";
+    protected final static String SUFFIX_OUT_NAME = ".txt";
+    protected final static String CONTENT_FILE_HEADER = "== Reporte de entregas ==";
 
     Pattern pattern = Pattern.compile("in(\\d+)\\.txt");
 
@@ -33,14 +37,20 @@ public class DroneS4n {
 
     public void start(String workDir, int countDrones, int droneCapacity) throws IOException {
         logger.info("Just started!");
+        final int numberDigits = getNumberDigits(countDrones);
+        final String outFileFormat = buildOutFileFormat(numberDigits);
 
         final Path inDir = Paths.get(workDir, IN_DIR_NAME);
         final Path processedDir = Paths.get(workDir, PROCESSED_DIR_NAME);
+        final Path outDir = Paths.get(workDir, OUT_DIR_NAME);
         if(Files.notExists(inDir)) {
             Files.createDirectories(inDir);
         }
         if(Files.notExists(processedDir)) {
             Files.createDirectories(processedDir);
+        }
+        if(Files.notExists(outDir)) {
+            Files.createDirectories(outDir);
         }
 
         for (int i = 1; i <= countDrones; i++) {
@@ -62,12 +72,14 @@ public class DroneS4n {
                             logger.debug("File {} lines {}", path, lines.size());
                             Files.move(path, processedDir.resolve(path.getFileName()), REPLACE_EXISTING);
                             new OperatorWorker(drone, lines).start();
+                            writeDeliveriesReport(outDir, outFileFormat, CONTENT_FILE_HEADER,
+                                    droneId, drone.getAllPositions());
                         } else {
                             logger.warn("DroneId {} does not exist", droneId);
                             Files.move(path, processedDir.resolve(path.getFileName()), REPLACE_EXISTING);
                         }
                     } catch (IOException e) {
-                        e.printStackTrace();
+                        logger.error("Error", e);
                     }
                 });
             } else {
@@ -104,8 +116,36 @@ public class DroneS4n {
         return pattern.matcher(fileName).matches();
     }
 
+    protected void writeDeliveriesReport(
+            Path outDir, String outFileFormat, String contentHeader, int droneId,
+            List<DronePosition> positions) throws IOException {
+        String outFileName = String.format(outFileFormat, droneId);
+        StringBuilder sb = new StringBuilder();
+        if(contentHeader != null && contentHeader.length() > 0) {
+            sb.append(contentHeader).append("\n");
+        }
+        for (DronePosition pos :
+                positions) {
+            sb.append(pos).append("\n");
+
+        }
+        Path outPath = outDir.resolve(outFileName);
+        Files.write(outPath, sb.toString().getBytes());
+    }
+
+    private int getNumberDigits(int integer) {
+        return (int) (Math.log10(integer) + 1);
+    }
+
+    protected String buildOutFileFormat(int numberDigits) {
+        return new StringBuilder()
+                .append(PREFIX_OUT_NAME)
+                .append("%0").append(numberDigits).append("d")
+                .append(SUFFIX_OUT_NAME).toString();
+    }
 
 
-
-
+    public void shutdown() {
+        logger.info("Releasing resources ...");
+    }
 }
