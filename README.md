@@ -17,3 +17,13 @@ Assumptions
 Not included
 - Need to define what to do in case the drone is out of range. A route validation should be included so it is known 
 when a route is heading out of range.
+
+#Usage
+Usage:
+java Application [numberOfDrones] [droneCapacity] [maxBlocksAround] [workDir] [Drone implementation class name] [Instruction provider class name]
+
+Example:
+java Application 10 2 10 /Users/jsanin/dev/workspace_personal/drones4n/workDir corrientazo.drones4n.DroneImpl corrientazo.drones4n.integrationFlatFileIntegration
+
+With gradle:
+ ./gradlew run --args="20 4 10 /Users/jsanin/dev/workspace_personal/drones4n/workDir corrientazo.drones4n.DroneImpl corrientazo.drones4n.integration.FlatFileIntegration"
