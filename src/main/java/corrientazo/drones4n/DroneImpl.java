@@ -41,6 +41,13 @@ public class DroneImpl implements Drone {
         return capacity;
     }
 
+    /**
+     * Instructions supported are: A -> advance, I -> turn left, D -> turn right. Example:
+     * AAADAIIA.
+     * It is case sensitive, and any other letter will be kindly ignored.
+     * @param instruction instructions that can be interpreted by the drone
+     * @return
+     */
     @Override
     public synchronized boolean  move(String instruction) {
         this.status = DroneStatus.MOVING;
