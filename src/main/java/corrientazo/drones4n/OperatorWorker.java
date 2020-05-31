@@ -23,7 +23,7 @@ public class OperatorWorker {
         this.instructions = instructions;
     }
 
-    public void start() {
+    public Drone start() {
         int droneCapacity = drone.getCapacity();
         int counter = 0;
         List<String> insToDrone = new ArrayList<>(droneCapacity);
@@ -44,13 +44,26 @@ public class OperatorWorker {
             applyMoves(drone, insToDrone);
             drone.goToStartingPoint();
         }
+        return drone;
     }
 
     protected void applyMoves(Drone drone, List<String> insToDrone) {
         for (String ins : insToDrone) {
+            logger.debug("DroneId {} moving ", drone.getId());
             if(!drone.move(ins)) {
                 logger.error("Drone {} could not move to {}. Probably it is out of range. Trying next move ...", drone.getId(), ins);
             }
+            /*
+            THIS BLOCK OF CODE IS FOR TESTING PURPOSE
+            I want to simulate that some time goes by
+             */
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            logger.debug("DroneId {} moved ", drone.getId());
+
         }
     }
 }

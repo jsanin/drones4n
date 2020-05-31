@@ -11,6 +11,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -57,12 +60,15 @@ public class DroneS4n {
             drones.put(i, new DroneImpl(String.valueOf(i), droneCapacity, new DronePosition(0, 0, 0), maxBlocksAround));
         }
 
+        ExecutorService executor = Executors.newFixedThreadPool(countDrones);
+
         while(true) {
 
             Set<Path> files = getFilesInDir(inDir, 1);
             if(files.size() > 0) {
                 logger.info("Files found: {}", files.size());
-                files.stream().forEach(path -> {
+                files.stream().map(path -> {
+                    OperatorWorker worker = null;
                     try {
                         int droneId = getDroneId(path.getFileName().toString());
                         Drone drone = drones.get(droneId);
@@ -71,9 +77,7 @@ public class DroneS4n {
                             List<String> lines = Files.readAllLines(path);
                             logger.debug("File {} lines {}", path, lines.size());
                             Files.move(path, processedDir.resolve(path.getFileName()), REPLACE_EXISTING);
-                            new OperatorWorker(drone, lines).start();
-                            writeDeliveriesReport(outDir, outFileFormat, CONTENT_FILE_HEADER,
-                                    droneId, drone.getAllPositions());
+                            worker = new OperatorWorker(drone, lines);
                         } else {
                             logger.warn("DroneId {} does not exist", droneId);
                             Files.move(path, processedDir.resolve(path.getFileName()), REPLACE_EXISTING);
@@ -81,7 +85,18 @@ public class DroneS4n {
                     } catch (IOException e) {
                         logger.error("Error", e);
                     }
-                });
+                    return worker;
+                }).filter(operatorWorker -> operatorWorker != null).map(operatorWorker ->
+                    CompletableFuture.supplyAsync(() -> operatorWorker.start(), executor).
+                            thenAccept(drone -> {
+                                try {
+                                    writeDeliveriesReport(outDir, outFileFormat, CONTENT_FILE_HEADER,
+                                            Integer.parseInt(drone.getId()), drone.getAllPositions());
+                                } catch (IOException e) {
+                                    logger.error("Error writing output for droneId {}", drone.getId(), e);
+                                }
+                            })
+                ).collect(Collectors.toList());
             } else {
                 logger.debug("No files found");
             }
