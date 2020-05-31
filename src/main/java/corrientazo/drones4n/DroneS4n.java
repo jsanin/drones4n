@@ -1,5 +1,6 @@
 package corrientazo.drones4n;
 
+import corrientazo.drones4n.integration.InstructionProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -7,98 +8,74 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 
 public class DroneS4n {
 
     private static final Logger logger = LoggerFactory.getLogger(DroneS4n.class);
 
-    protected final static String IN_DIR_NAME = "in";
-    protected final static String PROCESSED_DIR_NAME = "processed";
     protected final static String OUT_DIR_NAME = "out";
     protected final static String PREFIX_OUT_NAME = "out";
     protected final static String SUFFIX_OUT_NAME = ".txt";
     protected final static String CONTENT_FILE_HEADER = "== Reporte de entregas ==";
 
-    Pattern pattern = Pattern.compile("in(\\d+)\\.txt");
+    final protected Map<Integer, Drone> drones;
+    final protected InstructionProvider instructionProvider;
 
-    Map<Integer, Drone> drones = new HashMap<>();
+    public DroneS4n(Map<Integer, Drone> drones, InstructionProvider instructionProvider) {
+        this.instructionProvider = instructionProvider;
+        this.drones = drones;
+    }
 
 
-
-    public void start(String workDir, int countDrones, int droneCapacity, int maxBlocksAround) throws IOException {
+    public void start(String workDir) throws IOException {
         logger.info("Just started!");
-        final int numberDigits = getNumberDigits(countDrones);
+        int sizeDrones = drones.size();
+        final int numberDigits = getNumberDigits(sizeDrones);
         final String outFileFormat = buildOutFileFormat(numberDigits);
 
-        final Path inDir = Paths.get(workDir, IN_DIR_NAME);
-        final Path processedDir = Paths.get(workDir, PROCESSED_DIR_NAME);
         final Path outDir = Paths.get(workDir, OUT_DIR_NAME);
-        if(Files.notExists(inDir)) {
-            Files.createDirectories(inDir);
-        }
-        if(Files.notExists(processedDir)) {
-            Files.createDirectories(processedDir);
-        }
         if(Files.notExists(outDir)) {
             Files.createDirectories(outDir);
         }
 
-        for (int i = 1; i <= countDrones; i++) {
-            drones.put(i, new DroneImpl(String.valueOf(i), droneCapacity, new DronePosition(0, 0, 0), maxBlocksAround));
-        }
-
-        ExecutorService executor = Executors.newFixedThreadPool(countDrones);
+        ExecutorService executor = Executors.newFixedThreadPool(sizeDrones);
 
         while(true) {
 
-            Set<Path> files = getFilesInDir(inDir, 1);
-            if(files.size() > 0) {
-                logger.info("Files found: {}", files.size());
-                files.stream().map(path -> {
+            Map<Integer, List<String>> droneInstructions = instructionProvider.nextBatch();
+            if(!droneInstructions.isEmpty()) {
+                droneInstructions.entrySet().stream().map(droneInst -> {
                     OperatorWorker worker = null;
-                    try {
-                        int droneId = getDroneId(path.getFileName().toString());
-                        Drone drone = drones.get(droneId);
-                        if(drone != null) {
-                            logger.debug("Processing file {}", path);
-                            List<String> lines = Files.readAllLines(path);
-                            logger.debug("File {} lines {}", path, lines.size());
-                            Files.move(path, processedDir.resolve(path.getFileName()), REPLACE_EXISTING);
-                            worker = new OperatorWorker(drone, lines);
-                        } else {
-                            logger.warn("DroneId {} does not exist", droneId);
-                            Files.move(path, processedDir.resolve(path.getFileName()), REPLACE_EXISTING);
-                        }
-                    } catch (IOException e) {
-                        logger.error("Error", e);
+                    int droneId = droneInst.getKey();
+                    Drone drone = drones.get(droneId);
+                    if(drone != null) {
+                        List<String> lines = droneInst.getValue();
+                        logger.debug("DroneId {} Instructions size {}", droneId, lines.size());
+                        worker = new OperatorWorker(drone, lines);
+                    } else {
+                        logger.warn("DroneId {} does not exist", droneId);
                     }
                     return worker;
-                }).filter(operatorWorker -> operatorWorker != null).map(operatorWorker ->
-                    CompletableFuture.supplyAsync(() -> operatorWorker.start(), executor).
-                            thenAccept(drone -> {
-                                try {
-                                    writeDeliveriesReport(outDir, outFileFormat, CONTENT_FILE_HEADER,
-                                            Integer.parseInt(drone.getId()), drone.getAllPositions());
-                                } catch (IOException e) {
-                                    logger.error("Error writing output for droneId {}", drone.getId(), e);
-                                }
-                            })
+                }).filter(operatorWorker -> operatorWorker != null)
+                  .map(operatorWorker ->
+                        CompletableFuture.supplyAsync(() -> operatorWorker.start(), executor).
+                                thenAccept(drone -> {
+                                    try {
+                                        writeDeliveriesReport(outDir, outFileFormat, CONTENT_FILE_HEADER,
+                                                Integer.parseInt(drone.getId()), drone.getAllPositions());
+                                    } catch (IOException e) {
+                                        logger.error("Error writing output for droneId {}", drone.getId(), e);
+                                    }
+                                })
                 ).collect(Collectors.toList());
             } else {
-                logger.debug("No files found");
+                logger.debug("No instructions");
             }
             try {
                 Thread.sleep(1000);
@@ -107,28 +84,6 @@ public class DroneS4n {
             }
         }
 
-        //logger.info("bye!");
-    }
-
-    private Set<Path> getFilesInDir(Path dir, int depth) throws IOException {
-        try (Stream<Path> stream = Files.walk(dir, depth)) {
-            return stream
-                    .filter(file -> !Files.isDirectory(file))
-                    .filter(file -> fileNameMatches(file.getFileName().toString()))
-                    .collect(Collectors.toSet());
-        }
-    }
-
-    protected int getDroneId(String fileName) {
-        Matcher m = pattern.matcher(fileName);
-        if(m.find()) {
-            return Integer.parseInt(m.group(1));
-        }
-        return -1;
-    }
-
-    protected boolean fileNameMatches(String fileName) {
-        return pattern.matcher(fileName).matches();
     }
 
     protected void writeDeliveriesReport(

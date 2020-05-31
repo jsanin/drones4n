@@ -6,7 +6,6 @@ import org.junit.Test;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -18,58 +17,13 @@ public class DroneS4nTest {
 
     @Before
     public void setUp() {
-        droneS4n = new DroneS4n();
+        droneS4n = new DroneS4n(null,null);
     }
 
     @Test
     public void start() {
     }
 
-    @Test
-    public void getDroneId_GoodName() {
-        //given
-        final String fileName02 = "in02.txt";
-        final String fileName401 = "in401.txt";
-        final String fileName9 = "in9.txt";
-
-        //when / then
-        assertEquals(2, droneS4n.getDroneId(fileName02));
-        assertEquals(401, droneS4n.getDroneId(fileName401));
-        assertEquals(9, droneS4n.getDroneId(fileName9));
-
-    }
-
-    @Test
-    public void fileNameMatches_Matches() {
-        //given
-        final String fileName02 = "in02.txt";
-        final String fileName401 = "in401.txt";
-        final String fileName9 = "in9.txt";
-
-        //when / then
-        assertTrue(droneS4n.fileNameMatches(fileName02));
-        assertTrue(droneS4n.fileNameMatches(fileName401));
-        assertTrue(droneS4n.fileNameMatches(fileName9));
-
-    }
-
-    @Test
-    public void fileNameMatches_DoNotMatch() {
-        //given
-        final String fileNameNotMatch1 = "in02x.txt";
-        final String fileNameNotMatch2 = "401in.txt";
-        final String fileNameNotMatch3 = "int9.txt";
-        final String fileNameNotMatch4 = "in9.pub";
-        final String fileNameNotMatch5 = "in.txt";
-
-        //when / then
-        assertFalse(droneS4n.fileNameMatches(fileNameNotMatch1));
-        assertFalse(droneS4n.fileNameMatches(fileNameNotMatch2));
-        assertFalse(droneS4n.fileNameMatches(fileNameNotMatch3));
-        assertFalse(droneS4n.fileNameMatches(fileNameNotMatch4));
-        assertFalse(droneS4n.fileNameMatches(fileNameNotMatch5));
-
-    }
 
     @Test
     public void writeDeliveriesReport_correct() throws IOException {

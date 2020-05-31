@@ -24,26 +24,31 @@ public class OperatorWorker {
     }
 
     public Drone start() {
-        int droneCapacity = drone.getCapacity();
-        int counter = 0;
-        List<String> insToDrone = new ArrayList<>(droneCapacity);
-        for (String instruction : instructions) {
-            if(counter < droneCapacity) {
-                insToDrone.add(instruction);
-                counter++;
-            } else {
-                // capacity full, move drone
+        logger.debug("Waiting for droneId {} to be available...", drone.getId());
+        synchronized (drone) {
+            logger.debug("droneId {} available! Starting process", drone.getId());
+            int droneCapacity = drone.getCapacity();
+            int counter = 0;
+            List<String> insToDrone = new ArrayList<>(droneCapacity);
+            for (String instruction : instructions) {
+                if(counter < droneCapacity) {
+                    insToDrone.add(instruction);
+                    counter++;
+                } else {
+                    // capacity full, move drone
+                    applyMoves(drone, insToDrone);
+                    insToDrone.clear();
+                    counter = 1;
+                    insToDrone.add(instruction);
+                    drone.goToStartingPoint();
+                }
+            }
+            if(!insToDrone.isEmpty()) {
                 applyMoves(drone, insToDrone);
-                insToDrone.clear();
-                counter = 1;
-                insToDrone.add(instruction);
                 drone.goToStartingPoint();
             }
         }
-        if(!insToDrone.isEmpty()) {
-            applyMoves(drone, insToDrone);
-            drone.goToStartingPoint();
-        }
+        logger.debug("droneId {} released", drone.getId());
         return drone;
     }
 

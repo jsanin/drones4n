@@ -113,6 +113,7 @@ public class OperatorWorkerTest {
 
         List<String> insToApply = Arrays.asList("inst1", "inst2", "inst3");
 
+        when(drone.getId()).thenReturn("1");
         when(drone.move(anyString())).thenReturn(true);
 
         //when

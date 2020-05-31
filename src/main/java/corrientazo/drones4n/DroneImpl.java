@@ -121,6 +121,7 @@ public class DroneImpl implements Drone {
     @Override
     public void goToStartingPoint() {
         logger.info("DroneId {} going to starting point", this.id);
+        this.position = this.initialPosition;
     }
 
     @Override
